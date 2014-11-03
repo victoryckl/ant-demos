@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.anttest"
-    android:versionCode="1234567890"
-    android:versionName="0.2.8.141127_alpha" >
-<!--     android:versionName="0.2.8.141027_alpha" > -->
+    android:versionCode="1415029020"
+    android:versionName="0.0.1.141103_beta" >
 
     <uses-sdk
         android:minSdkVersion="14"

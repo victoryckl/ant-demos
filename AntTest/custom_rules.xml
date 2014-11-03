@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="custom_rules">
-    <property name="project.dir" value="${basedir}" />
-    <echo message="project.dir:${project.dir}" />
-    
     <property name="auto.version.is.time" value="true" />
     
     <taskdef resource="net/sf/antcontrib/antcontrib.properties">
@@ -11,71 +8,74 @@
 		</classpath>
     </taskdef>
     
-    <target name="property-config">
-        <xmlproperty file="AndroidManifest.xml" collapseAttributes="true" />
-        <echo message="package: ${manifest.package}" />
-        <echo message="versionName: ${manifest.android:versionName}" />
-        
-<!--         <propertyregex property="ver.name" 
-			input="${manifest.android:versionName}" regexp="(.*)\." select="\1"/> -->
-        <propertyregex property="ver.ver" 
-            input="${manifest.android:versionName}" regexp="(\d\.\d\.\d\.\d\d\d\d\d\d_[A-Za-z]+$)" select="\1"/>
-        <echo message="ver.ver: ${ver.ver}" />
-        
-        <condition property="scondition">
-            <!--如果属性name不存在则返回false-->
-            <isset property="ver.ver"/>
-        </condition>  
-        <antcall target="isTrue"></antcall>
-        <antcall target="isFalse"></antcall>
-        
-        <propertyregex property="ver.name" 
-            input="${manifest.android:versionName}" regexp="^(\d\.\d\.\d)\." select="\1"/>
-        <propertyregex property="ver.date" 
-            input="${manifest.android:versionName}" regexp="\.(\d\d\d\d\d\d)\_" select="\1"/>
-        <propertyregex property="ver.flag" 
-            input="${manifest.android:versionName}" regexp="(_[A-Za-z]+$)" select="\1"/>
-        <echo message="ver.name: ${ver.name}" />
-        <echo message="ver.date: ${ver.date}" />
-        <echo message="ver.flag: ${ver.flag}" />
-        
+    <target name="-init-version" >
+	    <xmlproperty file="AndroidManifest.xml" collapseAttributes="true" />
+	    <property name="origin.ver.code" value="${manifest.android:versionCode}" />
+	    <property name="origin.ver.name" value="${manifest.android:versionName}" />
+	    <echo message="origin.ver.code: ${origin.ver.code}" />
+	    <echo message="origin.ver.name: ${origin.ver.name}" />
+	    
+	    <propertyregex property="ver.name" 
+	        input="${origin.ver.name}" 
+	        regexp="(\d\.\d\.\d\.\d\d\d\d\d\d_[A-Za-z]+$)" 
+	        select="\1"/>
+	    <echo message="ver.name: ${ver.name}" />
+	    
+	    <condition property="origin.ver.name.is.ok">
+	        <isset property="ver.name" />
+	    </condition>
+    </target>
+    
+    <target name="-get-auto-version" >
         <script language="javascript">
             <![CDATA[
                 property = project.setProperty("time.now", Math.floor((new Date()).getTime()/1000));
             ]]>
         </script>
         <tstamp>
-            <format property="auto.versionCode"
+            <format property="auto.ver.code"
                   pattern="${time.now}" locale="cn"/>
-            <format property="auto.versionName"
+            <format property="auto.ver.date"
                   pattern="yyMMdd" locale="cn"/>
         </tstamp>
-        
-        <property name="auto.final.versionCode" value="${auto.versionCode}" />
-        <property name="auto.final.versionName" value="0.2.8.${auto.versionName}_beta" />
-        
-        <echo message="auto.version.is.time: ${auto.version.is.time}" />
-        <echo message="versionCode: ${auto.final.versionCode}" />
-        <echo message="versionName: ${auto.final.versionName}" />
-        
     </target>
-
-    <target name="isTrue" if="scondition">
-        <echo>is ture</echo>
-	</target>
-	<target name="isFalse" unless="scondition">
-	    <echo>is false</echo>
-	</target>
-	
-    <target name="change-version" if="auto.version.is.time" depends="property-config">
-<!--         <replaceregexp file="${auto.project.tmp.dir}/AndroidManifest.xml"
+    
+    <target name="-get-version-name" 
+        unless="origin.ver.name.is.ok" 
+        depends="-get-auto-version, -init-version" >
+        <property name="ver.name" value="0.0.1.${auto.ver.date}_beta"/>
+    </target>
+    
+    <target name="change-version" 
+        if="auto.version.is.time" 
+        depends="-get-version-name" >
+        
+        <propertyregex property="ver.name.ver" input="${ver.name}" 
+           	regexp="^(\d\.\d\.\d)\." select="\1"/>
+        <!-- <propertyregex property="ver.name.date" input="${ver.name}" 
+            regexp="\.(\d\d\d\d\d\d)\_" select="\1"/> -->
+        <property name="ver.name.date" value="${auto.ver.date}" />
+        <propertyregex property="ver.name.flag" input="${ver.name}" 
+            regexp="_([A-Za-z]+$)" select="\1"/>
+        <echo message="ver.name.ver: ${ver.name.ver}" />
+        <echo message="ver.name.date: ${ver.name.date}" />
+        <echo message="ver.name.flag: ${ver.name.flag}" />
+        
+        <property name="auto.final.ver.code"
+            value="${auto.ver.code}" />
+        
+        <property name="auto.final.ver.name" 
+            value="${ver.name.ver}.${ver.name.date}_${ver.name.flag}" />
+        
+        <replaceregexp file="AndroidManifest.xml"
            match="android:versionCode=&quot;(\d+)&quot;"
-           replace="android:versionCode=&quot;${auto.final.versionCode}&quot;"
+           replace="android:versionCode=&quot;${auto.final.ver.code}&quot;"
         />
-        <replaceregexp file="${auto.project.tmp.dir}/AndroidManifest.xml"
-           match="android:versionName=&quot;([a-zA-Z0-9\.]+)&quot;"
-           replace="android:versionName=&quot;${auto.final.versionName}&quot;"
-        /> -->
+        
+        <replaceregexp file="AndroidManifest.xml"
+           match="android:versionName=&quot;([a-zA-Z0-9\._]+)&quot;"
+           replace="android:versionName=&quot;${auto.final.ver.name}&quot;"
+        />
     </target>
 
 </project>
