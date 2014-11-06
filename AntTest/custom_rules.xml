@@ -17,7 +17,7 @@
 	    
 	    <propertyregex property="ver.name" 
 	        input="${origin.ver.name}" 
-	        regexp="(\d\.\d\.\d\.\d\d\d\d\d\d_[A-Za-z]+$)" 
+	        regexp="(\d\d\d\d\.\d\d\.\d\d\.\d\d_[A-Za-z]+$)" 
 	        select="\1"/>
 	    <echo message="ver.name: ${ver.name}" />
 	    
@@ -36,28 +36,23 @@
             <format property="auto.ver.code"
                   pattern="${time.now}" locale="cn"/>
             <format property="auto.ver.date"
-                  pattern="yyMMdd" locale="cn"/>
+                  pattern="yyyy.MM.dd.HH" locale="cn"/>
         </tstamp>
     </target>
     
     <target name="-get-version-name" 
         unless="origin.ver.name.is.ok" 
         depends="-get-auto-version, -init-version" >
-        <property name="ver.name" value="0.0.1.${auto.ver.date}_beta"/>
+        <property name="ver.name" value="${auto.ver.date}_beta"/>
     </target>
     
     <target name="change-version" 
         if="auto.version.is.time" 
         depends="-get-version-name" >
         
-        <propertyregex property="ver.name.ver" input="${ver.name}" 
-           	regexp="^(\d\.\d\.\d)\." select="\1"/>
-        <!-- <propertyregex property="ver.name.date" input="${ver.name}" 
-            regexp="\.(\d\d\d\d\d\d)\_" select="\1"/> -->
         <property name="ver.name.date" value="${auto.ver.date}" />
         <propertyregex property="ver.name.flag" input="${ver.name}" 
             regexp="_([A-Za-z]+$)" select="\1"/>
-        <echo message="ver.name.ver: ${ver.name.ver}" />
         <echo message="ver.name.date: ${ver.name.date}" />
         <echo message="ver.name.flag: ${ver.name.flag}" />
         
@@ -65,15 +60,18 @@
             value="${auto.ver.code}" />
         
         <property name="auto.final.ver.name" 
-            value="${ver.name.ver}.${ver.name.date}_${ver.name.flag}" />
+            value="${ver.name.date}_${ver.name.flag}" />
         
+		<echo message="auto.final.ver.code:${auto.final.ver.code}" />
+		<echo message="auto.final.ver.name:${auto.final.ver.name}" />
+		
         <replaceregexp file="AndroidManifest.xml"
            match="android:versionCode=&quot;(\d+)&quot;"
            replace="android:versionCode=&quot;${auto.final.ver.code}&quot;"
         />
         
         <replaceregexp file="AndroidManifest.xml"
-           match="android:versionName=&quot;([a-zA-Z0-9\._]+)&quot;"
+           match="android:versionName=&quot;([a-zA-Z0-9\._\ ]+)&quot;"
            replace="android:versionName=&quot;${auto.final.ver.name}&quot;"
         />
     </target>
