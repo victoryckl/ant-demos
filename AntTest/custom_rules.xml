@@ -68,12 +68,12 @@
         <replaceregexp file="AndroidManifest.xml"
            match="android:versionCode=&quot;(\d+)&quot;"
            replace="android:versionCode=&quot;${auto.final.ver.code}&quot;"
-        />
+           encoding="utf-8"/>
         
         <replaceregexp file="AndroidManifest.xml"
            match="android:versionName=&quot;([a-zA-Z0-9\._\ ]+)&quot;"
            replace="android:versionName=&quot;${auto.final.ver.name}&quot;"
-        />
+           encoding="utf-8"/>
     </target>
 
 </project>
